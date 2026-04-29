@@ -1,0 +1,197 @@
+openapi: 3.0.3
+info:
+  title: OpenStack Compute (Nova) - Servers (KOG-friendly subset)
+  description: |
+    Hand-crafted OpenAPI 3.0 subset of the Nova v2.1 Compute API covering
+    the Server lifecycle (create / get / delete) sufficient for managing
+    a compute instance through the Krateo Operator Generator (KOG).
+
+    The OpenStack Nova API authenticates with Keystone-issued tokens
+    delivered via the `X-Auth-Token` HTTP header. KOG only supports
+    `http/basic` and `http/bearer` security schemes today, so this spec
+    declares `bearer` and the chart deploys a tiny header-rewrite proxy
+    (`nova-auth-bridge`) that translates `Authorization: Bearer <t>` to
+    `X-Auth-Token: <t>` before forwarding to the upstream Nova endpoint.
+
+    The Nova request/response payload wraps all server fields in a
+    top-level `server` object; the OAS reflects that envelope honestly,
+    so the generated CR uses `spec.server.name`, `spec.server.flavorRef`,
+    etc.
+  version: "2.1"
+servers:
+  - url: http://nova-auth-bridge.krateo-system.svc.cluster.local
+    description: In-cluster header-rewrite proxy in front of OVH Nova
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+  schemas:
+    Network:
+      type: object
+      properties:
+        uuid:
+          type: string
+          description: Neutron network UUID to attach to the instance.
+    SecurityGroup:
+      type: object
+      properties:
+        name:
+          type: string
+    ServerSpec:
+      type: object
+      required:
+        - name
+        - flavorRef
+        - imageRef
+      properties:
+        name:
+          type: string
+          description: Human-readable server name.
+        flavorRef:
+          type: string
+          description: Flavor ID (e.g. `b2-7`) or full flavor URL.
+        imageRef:
+          type: string
+          description: Image UUID to boot from.
+        key_name:
+          type: string
+          description: Name of an existing keypair to inject.
+        networks:
+          type: array
+          items:
+            $ref: '#/components/schemas/Network'
+        security_groups:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecurityGroup'
+        availability_zone:
+          type: string
+        user_data:
+          type: string
+          description: base64-encoded cloud-init payload.
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        config_drive:
+          type: boolean
+    ServerCreateRequest:
+      type: object
+      required:
+        - server
+      properties:
+        server:
+          $ref: '#/components/schemas/ServerSpec'
+    ServerSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        status:
+          type: string
+        OS-EXT-STS:vm_state:
+          type: string
+        OS-EXT-STS:power_state:
+          type: integer
+        OS-EXT-AZ:availability_zone:
+          type: string
+        accessIPv4:
+          type: string
+        accessIPv6:
+          type: string
+        tenant_id:
+          type: string
+        user_id:
+          type: string
+        flavor:
+          type: object
+          properties:
+            id:
+              type: string
+        image:
+          type: object
+          properties:
+            id:
+              type: string
+        addresses:
+          type: object
+          additionalProperties:
+            type: array
+            items:
+              type: object
+              properties:
+                addr:
+                  type: string
+                version:
+                  type: integer
+        created:
+          type: string
+        updated:
+          type: string
+    ServerCreateResponse:
+      type: object
+      properties:
+        server:
+          $ref: '#/components/schemas/ServerSummary'
+    ServerGetResponse:
+      type: object
+      properties:
+        server:
+          $ref: '#/components/schemas/ServerSummary'
+security:
+  - bearer: []
+paths:
+  /servers:
+    post:
+      operationId: createServer
+      summary: Create a server
+      description: Boots a new compute instance on the project.
+      tags: [servers]
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServerCreateRequest'
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerCreateResponse'
+  /servers/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Server UUID.
+    get:
+      operationId: getServer
+      summary: Show server details
+      tags: [servers]
+      security:
+        - bearer: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerGetResponse'
+    delete:
+      operationId: deleteServer
+      summary: Delete a server
+      tags: [servers]
+      security:
+        - bearer: []
+      responses:
+        '204':
+          description: Accepted - server scheduled for deletion

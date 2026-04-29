@@ -1,0 +1,11 @@
+{{- if .Values.restdefinitions.server.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-server
+  labels:
+    {{- include "openstack-nova-operator-kog.labels" . | nindent 4 }}
+data:
+  server.yaml: |
+{{ tpl (.Files.Get "assets/server.yaml") . | indent 4 }}
+{{- end }}

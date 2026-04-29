@@ -1,0 +1,22 @@
+apiVersion: v2
+name: openstack-nova-operator-kog
+description: |
+  Krateo Operator Generator (KOG) packaging that turns OpenStack Nova
+  compute instances into native Kubernetes custom resources, validated
+  against OVH Public Cloud as the managed OpenStack target.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"
+keywords:
+  - krateo
+  - kog
+  - oasgen-provider
+  - openstack
+  - nova
+  - ovh
+  - operator
+home: https://github.com/braghettos/openstack-nova-operator-kog
+sources:
+  - https://github.com/braghettos/openstack-nova-operator-kog
+maintainers:
+  - name: braghettos

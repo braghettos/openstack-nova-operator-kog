@@ -1,0 +1,33 @@
+# Example Server CR. Adjust flavorRef / imageRef / network UUID for your
+# OVH Public Cloud project. List flavors and images with:
+#   openstack flavor list
+#   openstack image  list
+#   openstack network list
+apiVersion: nova.openstack.krateo.io/v1alpha1
+kind: Server
+metadata:
+  name: kog-demo-1
+  namespace: krateo-system
+  annotations:
+    krateo.io/connector-verbose: "true"
+spec:
+  authenticationRefs:
+    bearerAuthRef: nova-bearer
+  server:
+    name: kog-demo-1
+    # b2-7 = 2 vCPU / 7GB RAM (OVH GRA region naming)
+    flavorRef: "b2-7"
+    # Replace with a real Image UUID from `openstack image list`
+    imageRef: "00000000-0000-0000-0000-000000000000"
+    networks:
+      # Replace with a real Network UUID from `openstack network list`.
+      # On OVH the public network is named "Ext-Net".
+      - uuid: "00000000-0000-0000-0000-000000000000"
+    # security_groups:
+    #   - name: default
+    # key_name: my-keypair
+    # availability_zone: nova
+    # config_drive: true
+    # user_data: I2Nsb3VkLWNvbmZpZwo=    # base64(cloud-init)
+    metadata:
+      managed-by: krateo-kog

@@ -1,0 +1,33 @@
+{{- if .Values.restdefinitions.server.enabled }}
+apiVersion: ogen.krateo.io/v1alpha1
+kind: RestDefinition
+metadata:
+  name: {{ .Release.Name }}-server
+  labels:
+    {{- include "openstack-nova-operator-kog.labels" . | nindent 4 }}
+spec:
+  oasPath: configmap://{{ .Release.Namespace }}/{{ .Release.Name }}-server/server.yaml
+  resourceGroup: {{ .Values.restdefinitions.server.resourceGroup }}
+  resource:
+    kind: Server
+    identifiers:
+      - id
+      - name
+    additionalStatusFields:
+      - status
+      - addresses
+      - tenant_id
+      - flavor
+      - image
+      - created
+    verbsDescription:
+      - action: create
+        method: POST
+        path: /servers
+      - action: get
+        method: GET
+        path: /servers/{id}
+      - action: delete
+        method: DELETE
+        path: /servers/{id}
+{{- end }}

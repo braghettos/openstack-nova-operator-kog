@@ -1,0 +1,52 @@
+# Default values for openstack-nova-operator-kog.
+
+# Toggle the per-resource RestDefinitions emitted by this chart.
+restdefinitions:
+  server:
+    enabled: true
+    # The Kubernetes API group under which the generated Server CRD is
+    # registered. Generated GVK is `<group>/v1alpha1`, kind `Server`.
+    resourceGroup: nova.openstack.krateo.io
+
+# nova-auth-bridge is a tiny stateless reverse proxy that rewrites the
+# `Authorization: Bearer <token>` header (which the Krateo Rest Dynamic
+# Controller emits) into `X-Auth-Token: <token>` (which Nova expects).
+#
+# It does NOT do any Keystone token exchange. You are expected to fetch
+# a Keystone token out-of-band (see scripts/get-token.sh) and store it
+# in a Secret. When that token expires (~1h on OVH), refresh the Secret.
+authBridge:
+  enabled: true
+  replicaCount: 1
+  # Upstream Nova endpoint. For OVH Public Cloud this is the
+  # region-specific Nova URL from the Keystone catalog, e.g.:
+  #   https://compute.gra11.cloud.ovh.net/v2.1/<projectId>
+  #   https://compute.sbg5.cloud.ovh.net/v2.1/<projectId>
+  #   https://compute.de1.cloud.ovh.net/v2.1/<projectId>
+  # Override at install-time with `--set authBridge.upstreamUrl=...`.
+  upstreamUrl: ""
+  image:
+    repository: nginx
+    tag: "1.27-alpine"
+    pullPolicy: IfNotPresent
+  service:
+    type: ClusterIP
+    port: 80
+  resources:
+    requests:
+      cpu: 10m
+      memory: 16Mi
+    limits:
+      cpu: 200m
+      memory: 64Mi
+  podAnnotations: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+serviceAccount:
+  create: false
+  name: ""
+
+nameOverride: ""
+fullnameOverride: ""
