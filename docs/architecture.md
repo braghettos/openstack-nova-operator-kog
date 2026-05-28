@@ -94,3 +94,21 @@ the Kind something else. The chart defaults to `Instance`
 (`restdefinitions.server.resourceKind`), which yields
 `instances.nova.openstack.krateo.io` and the companion
 `instanceconfigurations.nova.openstack.krateo.io`.
+
+## Why the `server.*` identifiers and `requestFieldMapping`
+
+The same `{ "server": {...} }` envelope wraps Nova's *responses*. The
+`rest-dynamic-controller` extracts the configured `identifiers` from the
+response body by JSONPath and would, by default, look for `id`/`name` at
+the root — where Nova has nothing. So the RestDefinition uses
+`identifiers: [server.id, server.name]` (and `additionalStatusFields:
+server.*`), which land in the CR as `status.server.id`, etc.
+
+Path parameters are only auto-filled from *top-level* CR fields, so the
+`{id}` in `GET`/`DELETE /servers/{id}` can't be sourced from the nested
+`status.server.id` automatically. The `get` and `delete` verbs therefore
+declare an explicit `requestFieldMapping` (`inPath: id` ←
+`inCustomResource: status.server.id`). Without these two pieces the
+create succeeds but the server id is never captured, so observe/delete
+hit `/servers/{id}` literally (404) and the CR can neither report status
+nor be cleaned up.

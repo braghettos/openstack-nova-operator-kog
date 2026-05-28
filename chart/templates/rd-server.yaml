@@ -10,16 +10,20 @@ spec:
   resourceGroup: {{ .Values.restdefinitions.server.resourceGroup }}
   resource:
     kind: {{ .Values.restdefinitions.server.resourceKind }}
+    # Nova wraps every response in a `server` envelope, so the
+    # identifiers and status fields live under `.server.*`. The
+    # controller reads these JSONPaths out of the response body into the
+    # CR status (e.g. status.server.id).
     identifiers:
-      - id
-      - name
+      - server.id
+      - server.name
     additionalStatusFields:
-      - status
-      - addresses
-      - tenant_id
-      - flavor
-      - image
-      - created
+      - server.status
+      - server.addresses
+      - server.tenant_id
+      - server.flavor
+      - server.image
+      - server.created
     verbsDescription:
       - action: create
         method: POST
@@ -27,7 +31,15 @@ spec:
       - action: get
         method: GET
         path: /servers/{id}
+        # {id} is not a top-level CR field, so map it explicitly from the
+        # nested status the create/get response populated.
+        requestFieldMapping:
+          - inPath: id
+            inCustomResource: status.server.id
       - action: delete
         method: DELETE
         path: /servers/{id}
+        requestFieldMapping:
+          - inPath: id
+            inCustomResource: status.server.id
 {{- end }}
