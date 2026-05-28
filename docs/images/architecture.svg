@@ -18,7 +18,7 @@
   <rect x="0" y="0" width="1320" height="640" fill="url(#bg)"/>
 
   <!-- Title -->
-  <text x="660" y="54" text-anchor="middle" font-size="34" font-weight="700" fill="#0f172a">From <tspan font-family="ui-monospace, SFMono-Regular, Menlo, monospace" fill="#326CE5">kubectl apply</tspan> to a running OVH VM</text>
+  <text x="660" y="54" text-anchor="middle" font-size="34" font-weight="700" fill="#0f172a">From <tspan font-family="ui-monospace, SFMono-Regular, Menlo, monospace" fill="#326CE5">kubectl apply</tspan> to a running OpenStack VM</text>
   <text x="660" y="88" text-anchor="middle" font-size="18" fill="#475569">Krateo KOG · OpenStack Nova · a stateless header-rewrite auth-bridge</text>
   <line x1="510" y1="106" x2="810" y2="106" stroke="#e2e8f0" stroke-width="2"/>
 
@@ -27,7 +27,7 @@
   <text x="385" y="282" text-anchor="middle" font-size="15" font-weight="700" fill="#326CE5">Kubernetes cluster (kind)</text>
 
   <rect x="826" y="250" width="474" height="250" rx="16" fill="#eef0fb" stroke="#0a2a8c" stroke-width="2" stroke-dasharray="6 5"/>
-  <text x="1063" y="282" text-anchor="middle" font-size="15" font-weight="700" fill="#0a2a8c">OVH Public Cloud</text>
+  <text x="1063" y="282" text-anchor="middle" font-size="15" font-weight="700" fill="#0a2a8c">OpenStack Nova — OVH Public Cloud</text>
 
   <!-- kubectl actor -->
   <rect x="40" y="170" width="170" height="44" rx="10" fill="#0f172a"/>
@@ -76,5 +76,5 @@
   <text x="1072" y="360" text-anchor="middle" font-size="12" fill="#475569">boots</text>
 
   <!-- Caption -->
-  <text x="660" y="556" text-anchor="middle" font-size="16" font-style="italic" fill="#64748b">One <tspan font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-style="normal">kubectl apply</tspan> → real compute on OVH — no bespoke operator code, just an OpenAPI spec.</text>
+  <text x="660" y="556" text-anchor="middle" font-size="16" font-style="italic" fill="#64748b">One <tspan font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-style="normal">kubectl apply</tspan> → real compute on OpenStack — no bespoke operator code, just an OpenAPI spec.</text>
 </svg>
