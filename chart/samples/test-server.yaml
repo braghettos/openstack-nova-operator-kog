@@ -1,18 +1,27 @@
-# Example Server CR. Adjust flavorRef / imageRef / network UUID for your
-# OVH Public Cloud project. List flavors and images with:
+# Example Instance CR. Adjust flavorRef / imageRef / network UUID for
+# your OVH Public Cloud project. List flavors and images with:
 #   openstack flavor list
 #   openstack image  list
 #   openstack network list
+#
+# The Kind is `Instance` (NOT `Server`): the Nova request body wraps
+# everything in a `{ "server": {...} }` envelope, so the generated spec
+# has a property named `server`. A Kind named `Server` collides with it
+# in crdgen and yields an invalid CRD, so the chart names the Kind
+# `Instance` (configurable via restdefinitions.server.resourceKind).
 apiVersion: nova.openstack.krateo.io/v1alpha1
-kind: Server
+kind: Instance
 metadata:
   name: kog-demo-1
   namespace: krateo-system
   annotations:
     krateo.io/connector-verbose: "true"
 spec:
-  authenticationRefs:
-    bearerAuthRef: nova-bearer
+  # Points at the InstanceConfiguration that holds the bearer token
+  # (see chart/samples/nova-auth.yaml).
+  configurationRef:
+    name: nova-config
+    namespace: krateo-system
   server:
     name: kog-demo-1
     # b2-7 = 2 vCPU / 7GB RAM (OVH GRA region naming)

@@ -14,8 +14,8 @@
 #   OS_REGION_NAME       default: GRA11
 #
 # Optional flags:
-#   --secret  emit a kubectl Secret/BearerAuth manifest pair instead of
-#             the raw token.
+#   --secret  emit a kubectl Secret manifest (consumed by the
+#             InstanceConfiguration CR) instead of the raw token.
 #   --upstream  print the Nova endpoint URL discovered from the catalog
 #               in addition to (or instead of) the token. Useful to
 #               populate authBridge.upstreamUrl in values.yaml.
@@ -72,9 +72,18 @@ payload=$(jq -n \
 tmp_headers=$(mktemp)
 trap 'rm -f "$tmp_headers"' EXIT
 
+# Normalize to the Keystone v3 base. The OVH openrc exports
+# OS_AUTH_URL=https://auth.cloud.ovh.net/ (no /v3) and relies on the
+# openstack CLI to append the version; this raw curl needs the /v3.
+auth_base="${OS_AUTH_URL%/}"
+case "$auth_base" in
+  */v3|*/v3.0) ;;
+  *) auth_base="$auth_base/v3" ;;
+esac
+
 body=$(curl -sS -D "$tmp_headers" \
   -H "Content-Type: application/json" \
-  -X POST "${OS_AUTH_URL%/}/auth/tokens" \
+  -X POST "${auth_base}/auth/tokens" \
   -d "$payload")
 
 token=$(awk -F': ' 'tolower($1)=="x-subject-token"{print $2}' "$tmp_headers" | tr -d '\r\n')

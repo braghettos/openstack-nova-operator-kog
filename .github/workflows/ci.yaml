@@ -32,8 +32,8 @@ jobs:
         uses: docker://ghcr.io/yannh/kubeconform:latest
         with:
           # -ignore-missing-schemas allows the CRD kinds we depend on
-          # (RestDefinition, Server, BearerAuth) which aren't part of
-          # the upstream Kubernetes schema bundle.
+          # (RestDefinition, Instance, InstanceConfiguration) which aren't
+          # part of the upstream Kubernetes schema bundle.
           args: -strict -ignore-missing-schemas -summary rendered.yaml
 
   shellcheck:

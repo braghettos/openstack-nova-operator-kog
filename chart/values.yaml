@@ -4,9 +4,15 @@
 restdefinitions:
   server:
     enabled: true
-    # The Kubernetes API group under which the generated Server CRD is
-    # registered. Generated GVK is `<group>/v1alpha1`, kind `Server`.
+    # The Kubernetes API group under which the generated CRD is
+    # registered. Generated GVK is `<group>/v1alpha1`.
     resourceGroup: nova.openstack.krateo.io
+    # The CRD Kind. It must NOT be "Server": the Nova request body wraps
+    # everything in a `{ "server": {...} }` envelope, so the generated
+    # spec has a property literally named `server`. crdgen collides a
+    # Kind named "Server" with that property and emits an invalid
+    # (empty-type) schema node, which the API server rejects.
+    resourceKind: Instance
 
 # nova-auth-bridge is a tiny stateless reverse proxy that rewrites the
 # `Authorization: Bearer <token>` header (which the Krateo Rest Dynamic

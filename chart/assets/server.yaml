@@ -19,7 +19,7 @@ info:
     etc.
   version: "2.1"
 servers:
-  - url: http://nova-auth-bridge.krateo-system.svc.cluster.local
+  - url: {{ include "openstack-nova-operator-kog.authBridgeUrl" . }}
     description: In-cluster header-rewrite proxy in front of OVH Nova
 components:
   securitySchemes:
