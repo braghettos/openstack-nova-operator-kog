@@ -5,7 +5,7 @@ compute instances into native Kubernetes custom resources, validated
 against [OVH Public Cloud](https://www.ovhcloud.com/en/public-cloud/)
 as the managed OpenStack target.
 
-`kubectl apply` a `Server` CR &rarr; KOG's
+`kubectl apply` an `Instance` CR &rarr; KOG's
 [`oasgen-provider`](https://github.com/krateoplatformops/oasgen-provider)
 and
 [`rest-dynamic-controller`](https://github.com/krateoplatformops/rest-dynamic-controller)
@@ -25,8 +25,8 @@ chart/
     auth-bridge-*.yaml     # Stateless nginx that rewrites
                            # Authorization: Bearer -> X-Auth-Token
   samples/
-    nova-auth.yaml         # Secret + BearerAuth CR
-    test-server.yaml       # Sample Server CR
+    nova-auth.yaml         # Secret + InstanceConfiguration CR
+    test-server.yaml       # Sample Instance CR
 scripts/
   get-token.sh             # Keystone v3 token fetcher; --secret mode
                            # emits a kubectl-apply-ready Secret
@@ -58,7 +58,7 @@ helm install nova ./chart -n krateo-system \
 kubectl apply -f chart/samples/nova-auth.yaml
 # edit chart/samples/test-server.yaml: flavorRef / imageRef / network UUID
 kubectl apply -f chart/samples/test-server.yaml
-kubectl -n krateo-system get servers.nova.openstack.krateo.io -w
+kubectl -n krateo-system get instances.nova.openstack.krateo.io -w
 ```
 
 See [docs/e2e.md](docs/e2e.md) for the full walkthrough including a

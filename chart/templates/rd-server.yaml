@@ -9,7 +9,7 @@ spec:
   oasPath: configmap://{{ .Release.Namespace }}/{{ .Release.Name }}-server/server.yaml
   resourceGroup: {{ .Values.restdefinitions.server.resourceGroup }}
   resource:
-    kind: Server
+    kind: {{ .Values.restdefinitions.server.resourceKind }}
     identifiers:
       - id
       - name

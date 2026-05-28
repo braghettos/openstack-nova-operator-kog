@@ -71,10 +71,14 @@ Verify:
 kubectl -n krateo-system get restdefinitions
 kubectl -n krateo-system get deploy
 # Expect: nova-openstack-nova-operator-kog-auth-bridge   1/1
+#         nova-server-controller                         1/1   (appears once Ready)
 # Wait for the RestDefinition to reach Ready=True - that means the
-# generated Server CRD has been installed and the rest-dynamic-controller
-# for it has been deployed.
+# generated CRDs have been installed and the rest-dynamic-controller
+# for them has been deployed.
 kubectl get crd | grep nova.openstack.krateo.io
+# Expect two CRDs:
+#   instances.nova.openstack.krateo.io
+#   instanceconfigurations.nova.openstack.krateo.io
 ```
 
 ## 5. Provision a server
@@ -86,7 +90,9 @@ OVH's default lifetime is ~1h):
 ./scripts/get-token.sh --secret | kubectl apply -f -
 ```
 
-Apply the BearerAuth CR:
+Apply the InstanceConfiguration CR (it references the `nova-token`
+Secret created above, and is what the Instance CR points at via
+`spec.configurationRef`):
 
 ```bash
 kubectl apply -f chart/samples/nova-auth.yaml
@@ -104,7 +110,7 @@ Edit `chart/samples/test-server.yaml` with those values, then:
 
 ```bash
 kubectl apply -f chart/samples/test-server.yaml
-kubectl -n krateo-system get servers.nova.openstack.krateo.io -w
+kubectl -n krateo-system get instances.nova.openstack.krateo.io -w
 ```
 
 Cross-check on OVH:
@@ -139,6 +145,10 @@ The next reconciliation will pick up the new token automatically.
   or wasn't scoped to the right project. Re-run `get-token.sh --secret`.
 - **`404` on `POST /servers`**: confirm `authBridge.upstreamUrl` includes
   the `/v2.1/<projectId>` suffix.
-- **Server stays `pending` in `kubectl get`**: the RestDefinition hasn't
+- **Instance stays `pending` in `kubectl get`**: the RestDefinition hasn't
   reconciled yet. `kubectl describe restdefinition` and check the
   `oasgen-provider` logs.
+- **CRD rejected with `properties[spec].properties[server].properties[spec].type`**:
+  the CRD Kind is colliding with the `server` envelope property. Keep
+  `restdefinitions.server.resourceKind` set to something other than
+  `Server` (the chart defaults to `Instance`).

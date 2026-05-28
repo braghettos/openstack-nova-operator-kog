@@ -4,23 +4,24 @@
 flowchart LR
     subgraph K8s["Kubernetes cluster"]
         direction LR
-        user[/"kubectl apply<br/>Server CR"/]
+        user[/"kubectl apply<br/>Instance CR"/]
         oasgen[oasgen-provider<br/>controller]
         rdc[rest-dynamic-controller<br/>for kind=Server]
         bridge[nova-auth-bridge<br/>nginx]
         secret[(nova-token<br/>Secret)]
         oasCfg[(server.yaml<br/>ConfigMap)]
         rd[RestDefinition<br/>ogen.krateo.io/v1alpha1]
-        cr[Server CR<br/>nova.openstack.krateo.io]
-        bauth[BearerAuth CR]
+        cr[Instance CR<br/>nova.openstack.krateo.io]
+        cfg[InstanceConfiguration CR]
 
         user --> cr
         rd --> oasgen
         oasCfg --> oasgen
-        oasgen -->|generates CRD<br/>+ deploys| rdc
+        oasgen -->|generates CRDs<br/>+ deploys| rdc
+        cr -->|spec.configurationRef| cfg
         cr --> rdc
-        bauth --> rdc
-        secret --> bauth
+        cfg --> rdc
+        secret --> cfg
         rdc -->|"Authorization: Bearer &lt;token&gt;"| bridge
     end
 
@@ -40,12 +41,12 @@ flowchart LR
 
 | Component | Source | Role |
 |---|---|---|
-| `oasgen-provider` | Krateo upstream Helm chart | Reads RestDefinitions and the OAS, generates the `Server` CRD and deploys a dedicated `rest-dynamic-controller` to reconcile it. |
-| `RestDefinition` (this chart) | `chart/templates/rd-server.yaml` | Declarative pointer to the Nova OAS subset + the verbs we want exposed (`create`, `get`, `delete`). |
+| `oasgen-provider` | Krateo upstream Helm chart | Reads RestDefinitions and the OAS, generates the `Instance` + `InstanceConfiguration` CRDs and deploys a dedicated `rest-dynamic-controller` to reconcile them. |
+| `RestDefinition` (this chart) | `chart/templates/rd-server.yaml` | Declarative pointer to the Nova OAS subset + the verbs we want exposed (`create`, `get`, `delete`). The CRD Kind is `Instance` (configurable; must not be `Server` — see below). |
 | Nova OAS subset (this chart) | `chart/assets/server.yaml` | OpenAPI 3.0 with `http/bearer` security and the wrapped `{ "server": {...} }` envelope Nova expects. |
 | `nova-auth-bridge` (this chart) | `chart/templates/auth-bridge-*.yaml` | Stateless nginx reverse proxy. Rewrites `Authorization: Bearer <t>` (what the Rest Dynamic Controller emits) to `X-Auth-Token: <t>` (what Nova expects). No Keystone exchange. |
-| `BearerAuth` CR (auto-generated) | `chart/samples/nova-auth.yaml` | KOG-generated authentication CR; references the Secret holding the pre-fetched Keystone token. |
-| `Server` CR (auto-generated) | `chart/samples/test-server.yaml` | Concrete instance request; reconciled into a Nova VM. |
+| `InstanceConfiguration` CR (auto-generated) | `chart/samples/nova-auth.yaml` | KOG-generated configuration CR; `spec.authentication.bearer.tokenRef` references the Secret holding the pre-fetched Keystone token. |
+| `Instance` CR (auto-generated) | `chart/samples/test-server.yaml` | Concrete instance request (`spec.server.*` plus `spec.configurationRef`); reconciled into a Nova VM. |
 | `scripts/get-token.sh` | this repo | Out-of-band Keystone token fetch helper; emits a `kubectl apply`-ready Secret. |
 
 ## Why a header-rewrite proxy?
@@ -72,3 +73,24 @@ Nova accepts only `X-Auth-Token`. Three ways to bridge that gap:
 This chart implements (3). When upstream KOG grows apiKey support, the
 proxy can be removed in favor of an `apiKey/header/X-Auth-Token` scheme
 in the OAS.
+
+## Why is the Kind `Instance` and not `Server`?
+
+Nova's create payload wraps everything in a `{ "server": {...} }`
+envelope, so the OAS request body has a top-level property named
+`server` and the generated CR spec therefore has `spec.server`. If the
+CRD Kind is also `Server`, `crdgen` (the schema-to-CRD generator inside
+`oasgen-provider`) conflates the `server` property with the managed
+`Server` type and scaffolds it as a full Kubernetes object, emitting an
+empty-`type` `spec: {}` node. The API server then rejects the CRD:
+
+```
+spec.validation.openAPIV3Schema.properties[spec].properties[server].properties[spec].type:
+  Required value: must not be empty for specified object fields
+```
+
+The `server` property name is mandated by Nova, so the fix is to name
+the Kind something else. The chart defaults to `Instance`
+(`restdefinitions.server.resourceKind`), which yields
+`instances.nova.openstack.krateo.io` and the companion
+`instanceconfigurations.nova.openstack.krateo.io`.

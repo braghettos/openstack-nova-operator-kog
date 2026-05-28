@@ -14,8 +14,8 @@
 #   OS_REGION_NAME       default: GRA11
 #
 # Optional flags:
-#   --secret  emit a kubectl Secret/BearerAuth manifest pair instead of
-#             the raw token.
+#   --secret  emit a kubectl Secret manifest (consumed by the
+#             InstanceConfiguration CR) instead of the raw token.
 #   --upstream  print the Nova endpoint URL discovered from the catalog
 #               in addition to (or instead of) the token. Useful to
 #               populate authBridge.upstreamUrl in values.yaml.
