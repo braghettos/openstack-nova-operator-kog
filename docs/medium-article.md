@@ -1,8 +1,11 @@
-# From `kubectl apply` to a running OVH VM — with zero operator code
+# From `kubectl apply` to a running OpenStack VM — with zero operator code
 
 *How Krateo's Operator Generator (KOG) turns the OpenStack Nova API into a
-native Kubernetes CRD, and the five very real bugs we hit getting it to
-boot a VM on OVH Public Cloud.*
+native Kubernetes CRD — and the five very real bugs we hit booting an
+OpenStack VM, validated against OVH Public Cloud as the managed-OpenStack
+target.*
+
+![A single kubectl apply of an Instance CR flows through the rest-dynamic-controller and an nginx auth-bridge — which rewrites Authorization: Bearer into X-Auth-Token — to the OpenStack Nova Compute API (here on OVH), booting an ACTIVE VM.](images/architecture.png)
 
 ---
 
@@ -21,9 +24,16 @@ That's the promise of [Krateo](https://krateo.io)'s **Operator Generator
 the underlying REST API.
 
 This article is the story of pointing that machinery at **OpenStack Nova**
-on **OVH Public Cloud** — and the five concrete problems that stood
-between "it renders" and "there's a VM running." None of them showed up
-in CI. All of them showed up the moment we ran it for real.
+— and the five concrete problems that stood between "it renders" and
+"there's a VM running." None of them showed up in CI. All of them showed
+up the moment we ran it for real.
+
+Nothing here is OVH-specific: the target is the standard OpenStack
+Compute (Nova) API, so the same chart works against any Keystone + Nova
+endpoint (a private cloud, Devstack, another public provider). **OVH
+Public Cloud** is simply the managed OpenStack we validated against — the
+only OVH-flavoured details are the example endpoint/region and a couple
+of Keystone token-fetch quirks (Bug #4).
 
 ---
 
@@ -77,7 +87,7 @@ rest-dynamic-controller ──Authorization: Bearer <t>──► nova-auth-bridg
                                                               │
                                                   X-Auth-Token: <t>
                                                               ▼
-                                              OVH Nova Compute API ──► VM
+                                         OpenStack Nova Compute API ──► VM
 ```
 
 ---
@@ -184,16 +194,16 @@ hand-set env vars, but the moment we `source`d OVH's downloaded
 ## It boots! 🎉
 
 With those fixed, we applied an `Instance`. The controller POSTed through
-the bridge and OVH answered:
+the bridge and Nova answered:
 
 ```
 POST /servers  ->  HTTP/1.1 202 Accepted
 {"server": {"id": "90bff0b3-...", "adminPass": "...", ...}}
 ```
 
-A `kubectl apply` had created a **real, ACTIVE VM** on OVH, complete with a
-public IP. The entire chain — CR → KOG controller → header-rewrite bridge
-→ Nova — worked against live infrastructure.
+A `kubectl apply` had created a **real, ACTIVE OpenStack VM** (running on
+OVH), complete with a public IP. The entire chain — CR → KOG controller →
+header-rewrite bridge → Nova — worked against live infrastructure.
 
 ---
 
@@ -246,6 +256,36 @@ After redeploying, the full lifecycle worked:
 - **Delete** → `kubectl delete` makes the operator issue `DELETE` with the
   real id, OVH removes the VM, the finalizer clears cleanly.
 
+And here's the proof — the reconciled `Instance`, `spec` you declared and
+`status` the controller wrote back:
+
+```yaml
+apiVersion: nova.openstack.krateo.io/v1alpha1
+kind: Instance
+metadata:
+  name: kog-demo-1
+spec:  # what you declare
+  configurationRef:
+    name: nova-config
+  server:
+    name: kog-demo-1
+    flavorRef: 906e8259-...  # b2-7
+    imageRef: e65d6156-...   # Ubuntu 24.04
+    networks:
+      - uuid: b2c02fdc-...   # Ext-Net
+status:  # populated by the controller
+  server:
+    id: 39f18f87-0502-4e4b-9c0b-...
+    status: ACTIVE
+    addresses:
+      Ext-Net:
+        - addr: 217.182.163.210
+          version: 4
+  conditions:
+    - type: Ready
+      status: "True"
+```
+
 ---
 
 ## Takeaways
@@ -271,10 +311,10 @@ After redeploying, the full lifecycle worked:
 
 ## Try it
 
-A `kind` cluster, the Krateo `oasgen-provider`, this chart, and an OVH
-project are all you need. The repo includes a full walkthrough
-(`docs/e2e.md`) — bootstrap, token fetch, provision, and cleanup — and a
-short quickstart in the README.
+A `kind` cluster, the Krateo `oasgen-provider`, this chart, and any
+OpenStack project (we used OVH Public Cloud) are all you need. The repo
+includes a full walkthrough (`docs/e2e.md`) — bootstrap, token fetch,
+provision, and cleanup — and a short quickstart in the README.
 
 ```bash
 helm install oasgen-provider krateo/oasgen-provider -n krateo-system --create-namespace
@@ -285,6 +325,7 @@ kubectl apply -f chart/samples/test-server.yaml    # Instance
 kubectl -n krateo-system get instances.nova.openstack.krateo.io -w
 ```
 
-Then watch a row go `Ready`, and an actual VM appear in your OVH console.
+Then watch a row go `Ready`, and an actual VM appear in your OpenStack
+(OVH) console.
 
 *Don't forget to `kubectl delete` it — it bills by the hour.*
