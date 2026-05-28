@@ -4,6 +4,8 @@
 native Kubernetes CRD, and the five very real bugs we hit getting it to
 boot a VM on OVH Public Cloud.*
 
+![A single kubectl apply of an Instance CR flows through the rest-dynamic-controller and an nginx auth-bridge — which rewrites Authorization: Bearer into X-Auth-Token — to the OVH Nova Compute API, booting an ACTIVE VM.](images/architecture.png)
+
 ---
 
 ## The pitch
