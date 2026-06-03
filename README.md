@@ -32,6 +32,8 @@ scripts/
                            # emits a kubectl-apply-ready Secret
 docs/
   e2e.md                   # Full OVH walkthrough on a kind cluster
+  e2e-krateo-openstack.md  # Walkthrough against a Krateo-blueprint OpenStack
+                           # (in-cluster Nova) with screenshots
   architecture.md          # Diagram + design rationale
 ```
 
@@ -62,7 +64,10 @@ kubectl -n krateo-system get instances.nova.openstack.krateo.io -w
 ```
 
 See [docs/e2e.md](docs/e2e.md) for the full walkthrough including a
-`kind` bootstrap and cleanup, and [docs/architecture.md](docs/architecture.md)
+`kind` bootstrap and cleanup,
+[docs/e2e-krateo-openstack.md](docs/e2e-krateo-openstack.md) for testing
+against a self-hosted [Krateo-blueprint](https://github.com/braghettos/krateo-openstack-blueprint)
+OpenStack (with screenshots), and [docs/architecture.md](docs/architecture.md)
 for the design rationale (specifically why a header-rewrite proxy is
 needed today).
 
