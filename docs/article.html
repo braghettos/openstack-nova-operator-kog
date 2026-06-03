@@ -21,45 +21,20 @@ li{margin:6px 0}a{color:#1a8917}</style></head><body><figure><img src="https://r
 <h2>Pointing it at a self-hosted Nova</h2>
 <p>The operator was originally validated against OVH Public Cloud. Targeting our <strong>blueprint-deployed</strong> OpenStack changed exactly two things — the Nova endpoint and the token source — and surfaced one nice lesson.</p>
 <p><strong>Use the Nova ClusterIP, not its DNS name.</strong> The auth-bridge's <code>proxy_pass</code> includes a variable (<code>$request_uri</code>), which forces nginx to resolve the upstream host through its configured <code>resolver</code> — a <em>public</em> DNS server that can't resolve <code>nova-api.openstack.svc.cluster.local</code>. An IP literal needs no resolver:</p>
-<pre>NOVA_IP=$(kubectl get svc nova-api -n openstack -o jsonpath=&#x27;{.spec.clusterIP}&#x27;)
-PROJECT_ID=$(openstack project show admin -f value -c id)
-
-helm upgrade --install nova-kog ./chart -n krateo-system \
-  --set authBridge.upstreamUrl=&quot;http://$NOVA_IP:8774/v2.1/$PROJECT_ID&quot;</pre>
+<pre>NOVA_IP=$(kubectl get svc nova-api -n openstack -o jsonpath=&#x27;{.spec.clusterIP}&#x27;)<br>PROJECT_ID=$(openstack project show admin -f value -c id)<br><br>helm upgrade --install nova-kog ./chart -n krateo-system \<br>  --set authBridge.upstreamUrl=&quot;http://$NOVA_IP:8774/v2.1/$PROJECT_ID&quot;</pre>
 <p>oasgen-provider then reconciles the <code>RestDefinition</code> into CRDs:</p>
-<pre>kubectl wait restdefinition/nova-kog-server -n krateo-system \
-  --for=condition=Ready --timeout=300s
-kubectl get crd | grep nova.openstack.krateo.io
-# instanceconfigurations.nova.openstack.krateo.io
-# instances.nova.openstack.krateo.io</pre>
+<pre>kubectl wait restdefinition/nova-kog-server -n krateo-system \<br>  --for=condition=Ready --timeout=300s<br>kubectl get crd | grep nova.openstack.krateo.io<br># instanceconfigurations.nova.openstack.krateo.io<br># instances.nova.openstack.krateo.io</pre>
 <p>A Keystone token goes into the <code>nova-token</code> Secret the <code>InstanceConfiguration</code> references (refresh it when it expires, ~1h):</p>
-<pre>TOKEN=$(openstack token issue -f value -c id)
-kubectl create secret generic nova-token -n krateo-system \
-  --from-literal=token=&quot;$TOKEN&quot; --dry-run=client -o yaml | kubectl apply -f -</pre>
+<pre>TOKEN=$(openstack token issue -f value -c id)<br>kubectl create secret generic nova-token -n krateo-system \<br>  --from-literal=token=&quot;$TOKEN&quot; --dry-run=client -o yaml | kubectl apply -f -</pre>
 <h2><code>kubectl apply</code> → a real VM</h2>
-<pre>apiVersion: nova.openstack.krateo.io/v1alpha1
-kind: Instance
-metadata:
-  name: kog-demo-1
-  namespace: krateo-system
-spec:
-  configurationRef: { name: nova-config, namespace: krateo-system }
-  server:
-    name: kog-demo-1
-    flavorRef: &quot;&lt;m1.tiny id&gt;&quot;
-    imageRef:  &quot;&lt;cirros id&gt;&quot;
-    networks:
-      - uuid: &quot;&lt;demo-net id&gt;&quot;
-    metadata: { managed-by: krateo-kog }</pre>
+<pre>apiVersion: nova.openstack.krateo.io/v1alpha1<br>kind: Instance<br>metadata:<br>  name: kog-demo-1<br>  namespace: krateo-system<br>spec:<br>  configurationRef: { name: nova-config, namespace: krateo-system }<br>  server:<br>    name: kog-demo-1<br>    flavorRef: &quot;&lt;m1.tiny id&gt;&quot;<br>    imageRef:  &quot;&lt;cirros id&gt;&quot;<br>    networks:<br>      - uuid: &quot;&lt;demo-net id&gt;&quot;<br>    metadata: { managed-by: krateo-kog }</pre>
 <p>Apply it, and the controller calls Nova through the auth-bridge. Within seconds the Instance CR is <code>Ready=True</code> and the VM is <code>ACTIVE</code>:</p>
-<pre>NAME         READY
-kog-demo-1   True</pre>
+<pre>NAME         READY<br>kog-demo-1   True</pre>
 <p>The Instance CR records the server it created (<code>status.server.id</code>), and the VM carries the exact metadata we declared:</p>
 <figure><img src="https://raw.githubusercontent.com/braghettos/openstack-nova-operator-kog/main/docs/images/krateo-openstack/horizon-instances.png" alt="The Horizon instances list — kog-demo-1 and kog-demo-2 ACTIVE, created by the operator."/><figcaption>The Horizon instances list — kog-demo-1 and kog-demo-2 ACTIVE, created by the operator.</figcaption></figure>
 <figure><img src="https://raw.githubusercontent.com/braghettos/openstack-nova-operator-kog/main/docs/images/krateo-openstack/horizon-detail.png" alt="The kog-demo-1 detail page — its Nova ID matches the Instance CR&#x27;s status.server.id, and its managed-by: krateo-kog metadata matches the CR spec."/><figcaption>The kog-demo-1 detail page — its Nova ID matches the Instance CR&#x27;s status.server.id, and its managed-by: krateo-kog metadata matches the CR spec.</figcaption></figure>
 <p>The smoking gun that it really flowed through the operator (not a CLI) is the auth-bridge access log — the <code>POST /servers → 202</code> timestamp matches the VM's creation time, and the client is the <code>rest-dynamic-controller</code> (<code>Go-http-client</code>):</p>
-<pre>&quot;POST /servers HTTP/1.1&quot; 202 …
-&quot;GET /servers/&lt;id&gt; HTTP/1.1&quot; 200 …   ← the controller polling what it created</pre>
+<pre>&quot;POST /servers HTTP/1.1&quot; 202 …<br>&quot;GET /servers/&lt;id&gt; HTTP/1.1&quot; 200 …   ← the controller polling what it created</pre>
 <p>And the VM genuinely boots an OS. The serial console shows CirrOS coming up, pulling a <strong>Neutron DHCP lease</strong>, and reaching its login prompt:</p>
 <figure><img src="https://raw.githubusercontent.com/braghettos/openstack-nova-operator-kog/main/docs/images/krateo-openstack/console-kog-demo-1.png" alt="The kog-demo-1 serial console — CirrOS boots, gets a Neutron DHCP lease at 10.0.0.204, and reaches the kog-demo-1 login prompt."/><figcaption>The kog-demo-1 serial console — CirrOS boots, gets a Neutron DHCP lease at 10.0.0.204, and reaches the kog-demo-1 login prompt.</figcaption></figure>
 <h2><code>kubectl delete</code> → the VM is gone</h2>
