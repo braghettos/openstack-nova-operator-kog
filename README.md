@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/images/krateo-loves-openstack.png" alt="Krateo loves OpenStack" width="720"/>
+</p>
+
 # openstack-nova-operator-kog
 
 Krateo Operator Generator (KOG) packaging that turns OpenStack Nova

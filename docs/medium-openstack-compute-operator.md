@@ -1,3 +1,5 @@
+![Krateo loves OpenStack](images/krateo-loves-openstack.png)
+
 # An OpenStack Compute Kubernetes Operator with Krateo — and zero operator code
 
 *Turning the OpenStack Nova API into a native Kubernetes CRD with Krateo's
