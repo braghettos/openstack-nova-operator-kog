@@ -1,0 +1,115 @@
+openapi: 3.0.3
+info:
+  title: OpenStack Compute (Nova) - Keypairs (KOG-friendly subset)
+  description: |
+    Hand-crafted OpenAPI 3.0 subset of the Nova v2.1 Compute API covering the
+    Keypair lifecycle (create / get / delete). Keypairs are keyed by `name`
+    (there is no separate id). If `public_key` is omitted Nova generates a
+    keypair and returns the private key in the create response only.
+
+    Nova wraps the payload in a `keypair` envelope, so the CR uses
+    `spec.keypair.*`. The CRD Kind is `ComputeKeypair` to avoid colliding with
+    the `keypair` property crdgen derives from the envelope.
+  version: "2.1"
+servers:
+  - url: {{ include "openstack-nova-operator-kog.authBridgeUrl" . }}
+    description: In-cluster header-rewrite proxy in front of Nova
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+  schemas:
+    KeypairSpec:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Keypair name (unique per project).
+        public_key:
+          type: string
+          description: Existing SSH public key to import; omit to have Nova generate one.
+        type:
+          type: string
+          enum: [ssh, x509]
+          description: Keypair type.
+    KeypairCreateRequest:
+      type: object
+      required:
+        - keypair
+      properties:
+        keypair:
+          $ref: '#/components/schemas/KeypairSpec'
+    KeypairSummary:
+      type: object
+      properties:
+        name:
+          type: string
+        fingerprint:
+          type: string
+        public_key:
+          type: string
+        type:
+          type: string
+        user_id:
+          type: string
+    KeypairEnvelope:
+      type: object
+      properties:
+        keypair:
+          $ref: '#/components/schemas/KeypairSummary'
+security:
+  - bearer: []
+paths:
+  /os-keypairs:
+    post:
+      operationId: createKeypair
+      summary: Create or import a keypair
+      tags: [keypairs]
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/KeypairCreateRequest'
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeypairEnvelope'
+  /os-keypairs/{name}:
+    parameters:
+      - name: name
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Keypair name.
+    get:
+      operationId: getKeypair
+      summary: Show keypair details
+      tags: [keypairs]
+      security:
+        - bearer: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/KeypairEnvelope'
+    delete:
+      operationId: deleteKeypair
+      summary: Delete a keypair
+      tags: [keypairs]
+      security:
+        - bearer: []
+      responses:
+        '202':
+          description: Accepted - keypair deleted

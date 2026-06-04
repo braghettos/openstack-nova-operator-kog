@@ -1,0 +1,11 @@
+{{- if .Values.restdefinitions.keypair.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-keypair
+  labels:
+    {{- include "openstack-nova-operator-kog.labels" . | nindent 4 }}
+data:
+  keypair.yaml: |
+{{ tpl (.Files.Get "assets/keypair.yaml") . | indent 4 }}
+{{- end }}

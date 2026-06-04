@@ -1,0 +1,114 @@
+openapi: 3.0.3
+info:
+  title: OpenStack Compute (Nova) - Quota Sets (KOG-friendly subset)
+  description: |
+    Hand-crafted OpenAPI 3.0 subset of the Nova v2.1 Compute API covering the
+    per-project Quota Set (get / set / reset). A quota set is a singleton per
+    project: there is no create, you PUT to update and DELETE to reset to the
+    defaults.
+
+    KNOWN LIMITATION (shipped enabled:false): the update is
+    `PUT /os-quota-sets/{tenant_id}` with a body of strictly `{quota_set:{...}}`
+    (Nova sets `additionalProperties:false`). KOG sends the whole CR spec as the
+    request body, so the `tenant_id` needed for the {tenant_id} path segment
+    would also appear in the body and Nova returns 400. Enabling this resource
+    cleanly needs a KOG feature to keep a path-only field out of the body
+    (e.g. an `excludedFromBody` mapping). Left here, documented, for when that
+    lands. The Kind is `ComputeQuota` (the `quota_set` envelope → `QuotaSet`
+    field; `ComputeQuota` avoids the collision).
+  version: "2.1"
+servers:
+  - url: {{ include "openstack-nova-operator-kog.authBridgeUrl" . }}
+    description: In-cluster header-rewrite proxy in front of Nova
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+  schemas:
+    QuotaSetSpec:
+      type: object
+      properties:
+        instances:
+          type: integer
+        cores:
+          type: integer
+        ram:
+          type: integer
+        key_pairs:
+          type: integer
+        metadata_items:
+          type: integer
+        server_groups:
+          type: integer
+        server_group_members:
+          type: integer
+    QuotaUpdateRequest:
+      type: object
+      required:
+        - tenant_id
+        - quota_set
+      properties:
+        tenant_id:
+          type: string
+          description: Project ID the quota applies to (path parameter).
+        quota_set:
+          $ref: '#/components/schemas/QuotaSetSpec'
+    QuotaEnvelope:
+      type: object
+      properties:
+        quota_set:
+          type: object
+          additionalProperties: true
+security:
+  - bearer: []
+paths:
+  /os-quota-sets/{tenant_id}:
+    parameters:
+      - name: tenant_id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Project ID.
+    put:
+      operationId: setQuota
+      summary: Update the quota set for a project
+      tags: [quotas]
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/QuotaUpdateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotaEnvelope'
+    get:
+      operationId: getQuota
+      summary: Show the quota set for a project
+      tags: [quotas]
+      security:
+        - bearer: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotaEnvelope'
+    delete:
+      operationId: resetQuota
+      summary: Reset the quota set to defaults
+      tags: [quotas]
+      security:
+        - bearer: []
+      responses:
+        '202':
+          description: Accepted - quota reset

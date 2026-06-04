@@ -1,0 +1,36 @@
+{{- if .Values.restdefinitions.keypair.enabled }}
+apiVersion: ogen.krateo.io/v1alpha1
+kind: RestDefinition
+metadata:
+  name: {{ .Release.Name }}-keypair
+  labels:
+    {{- include "openstack-nova-operator-kog.labels" . | nindent 4 }}
+spec:
+  oasPath: configmap://{{ .Release.Namespace }}/{{ .Release.Name }}-keypair/keypair.yaml
+  resourceGroup: {{ .Values.restdefinitions.keypair.resourceGroup }}
+  resource:
+    # Keypairs are keyed by name (no id). The name is known at create time
+    # (spec.keypair.name), so get/delete map the {name} path param from spec.
+    kind: {{ .Values.restdefinitions.keypair.resourceKind }}
+    identifiers:
+      - keypair.name
+    additionalStatusFields:
+      - keypair.fingerprint
+      - keypair.type
+    verbsDescription:
+      - action: create
+        method: POST
+        path: /os-keypairs
+      - action: get
+        method: GET
+        path: /os-keypairs/{name}
+        requestFieldMapping:
+          - inPath: name
+            inCustomResource: spec.keypair.name
+      - action: delete
+        method: DELETE
+        path: /os-keypairs/{name}
+        requestFieldMapping:
+          - inPath: name
+            inCustomResource: spec.keypair.name
+{{- end }}

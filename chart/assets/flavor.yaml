@@ -1,0 +1,134 @@
+openapi: 3.0.3
+info:
+  title: OpenStack Compute (Nova) - Flavors (KOG-friendly subset)
+  description: |
+    Hand-crafted OpenAPI 3.0 subset of the Nova v2.1 Compute API covering the
+    Flavor lifecycle (create / get / delete), sufficient to manage a compute
+    flavor through the Krateo Operator Generator (KOG).
+
+    Nova wraps the flavor payload in a top-level `flavor` envelope, so the
+    generated CR uses `spec.flavor.*`. The CRD Kind is `ComputeFlavor` (not
+    `Flavor`): a Kind named `Flavor` would collide with the `flavor` property
+    crdgen derives from the envelope and emit an invalid schema.
+  version: "2.1"
+servers:
+  - url: {{ include "openstack-nova-operator-kog.authBridgeUrl" . }}
+    description: In-cluster header-rewrite proxy in front of Nova
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+  schemas:
+    FlavorSpec:
+      type: object
+      required:
+        - name
+        - ram
+        - vcpus
+        - disk
+      properties:
+        name:
+          type: string
+          description: Human-readable flavor name (e.g. `m1.small`).
+        ram:
+          type: integer
+          description: Memory in MB.
+        vcpus:
+          type: integer
+          description: Number of virtual CPUs.
+        disk:
+          type: integer
+          description: Root disk size in GB.
+        id:
+          type: string
+          description: Optional explicit flavor ID; Nova generates a UUID if omitted.
+        "OS-FLV-EXT-DATA:ephemeral":
+          type: integer
+          description: Ephemeral disk size in GB.
+        swap:
+          type: integer
+          description: Swap space in MB.
+        "os-flavor-access:is_public":
+          type: boolean
+          description: Whether the flavor is visible to all projects.
+        rxtx_factor:
+          type: number
+    FlavorCreateRequest:
+      type: object
+      required:
+        - flavor
+      properties:
+        flavor:
+          $ref: '#/components/schemas/FlavorSpec'
+    FlavorSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        ram:
+          type: integer
+        vcpus:
+          type: integer
+        disk:
+          type: integer
+    FlavorEnvelope:
+      type: object
+      properties:
+        flavor:
+          $ref: '#/components/schemas/FlavorSummary'
+security:
+  - bearer: []
+paths:
+  /flavors:
+    post:
+      operationId: createFlavor
+      summary: Create a flavor
+      tags: [flavors]
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/FlavorCreateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlavorEnvelope'
+  /flavors/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Flavor ID.
+    get:
+      operationId: getFlavor
+      summary: Show flavor details
+      tags: [flavors]
+      security:
+        - bearer: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FlavorEnvelope'
+    delete:
+      operationId: deleteFlavor
+      summary: Delete a flavor
+      tags: [flavors]
+      security:
+        - bearer: []
+      responses:
+        '202':
+          description: Accepted - flavor deleted

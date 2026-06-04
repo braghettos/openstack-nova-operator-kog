@@ -1,0 +1,120 @@
+openapi: 3.0.3
+info:
+  title: OpenStack Compute (Nova) - Server Groups (KOG-friendly subset)
+  description: |
+    Hand-crafted OpenAPI 3.0 subset of the Nova v2.1 Compute API covering the
+    Server Group lifecycle (create / get / delete). Server groups express
+    (anti-)affinity scheduling policies for instances.
+
+    Uses the baseline 2.1 `policies` array form. Nova wraps the payload in a
+    `server_group` envelope, so the CR uses `spec.server_group.*`. The CRD Kind
+    is `ComputeServerGroup`: crdgen camel-cases the `server_group` envelope
+    property to a `ServerGroup` field, so a Kind named `ServerGroup` would
+    collide with it.
+  version: "2.1"
+servers:
+  - url: {{ include "openstack-nova-operator-kog.authBridgeUrl" . }}
+    description: In-cluster header-rewrite proxy in front of Nova
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+  schemas:
+    ServerGroupSpec:
+      type: object
+      required:
+        - name
+        - policies
+      properties:
+        name:
+          type: string
+          description: Server group name.
+        policies:
+          type: array
+          description: Scheduling policy (e.g. `anti-affinity`, `affinity`).
+          items:
+            type: string
+            enum: [anti-affinity, affinity, soft-anti-affinity, soft-affinity]
+    ServerGroupCreateRequest:
+      type: object
+      required:
+        - server_group
+      properties:
+        server_group:
+          $ref: '#/components/schemas/ServerGroupSpec'
+    ServerGroupSummary:
+      type: object
+      properties:
+        id:
+          type: string
+        name:
+          type: string
+        policies:
+          type: array
+          items:
+            type: string
+        members:
+          type: array
+          items:
+            type: string
+        project_id:
+          type: string
+    ServerGroupEnvelope:
+      type: object
+      properties:
+        server_group:
+          $ref: '#/components/schemas/ServerGroupSummary'
+security:
+  - bearer: []
+paths:
+  /os-server-groups:
+    post:
+      operationId: createServerGroup
+      summary: Create a server group
+      tags: [server-groups]
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ServerGroupCreateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerGroupEnvelope'
+  /os-server-groups/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Server group UUID.
+    get:
+      operationId: getServerGroup
+      summary: Show server group details
+      tags: [server-groups]
+      security:
+        - bearer: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ServerGroupEnvelope'
+    delete:
+      operationId: deleteServerGroup
+      summary: Delete a server group
+      tags: [server-groups]
+      security:
+        - bearer: []
+      responses:
+        '204':
+          description: Accepted - server group deleted

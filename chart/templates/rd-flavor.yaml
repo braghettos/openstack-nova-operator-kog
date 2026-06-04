@@ -1,0 +1,38 @@
+{{- if .Values.restdefinitions.flavor.enabled }}
+apiVersion: ogen.krateo.io/v1alpha1
+kind: RestDefinition
+metadata:
+  name: {{ .Release.Name }}-flavor
+  labels:
+    {{- include "openstack-nova-operator-kog.labels" . | nindent 4 }}
+spec:
+  oasPath: configmap://{{ .Release.Namespace }}/{{ .Release.Name }}-flavor/flavor.yaml
+  resourceGroup: {{ .Values.restdefinitions.flavor.resourceGroup }}
+  resource:
+    # Nova wraps the flavor payload in a `flavor` envelope, so identifiers and
+    # status fields live under `.flavor.*`.
+    kind: {{ .Values.restdefinitions.flavor.resourceKind }}
+    identifiers:
+      - flavor.id
+      - flavor.name
+    additionalStatusFields:
+      - flavor.ram
+      - flavor.vcpus
+      - flavor.disk
+    verbsDescription:
+      - action: create
+        method: POST
+        path: /flavors
+      - action: get
+        method: GET
+        path: /flavors/{id}
+        requestFieldMapping:
+          - inPath: id
+            inCustomResource: status.flavor.id
+      - action: delete
+        method: DELETE
+        path: /flavors/{id}
+        requestFieldMapping:
+          - inPath: id
+            inCustomResource: status.flavor.id
+{{- end }}
