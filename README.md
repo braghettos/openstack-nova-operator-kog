@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="docs/images/krateo-loves-openstack.png" alt="Krateo loves OpenStack" width="720"/>
+  <img src="docs/krateo-loves-nova.png" alt="Krateo loves OpenStack Nova" width="900"/>
 </p>
 
 # openstack-nova-operator-kog
