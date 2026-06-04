@@ -1,4 +1,4 @@
-![Krateo loves OpenStack](images/krateo-loves-openstack.png)
+![Krateo loves OpenStack Nova](images/krateo-loves-nova.png)
 
 # An OpenStack Compute Kubernetes Operator with Krateo — and zero operator code
 
@@ -6,6 +6,11 @@
 Operator Generator (KOG), then driving real VMs on a self-hosted,
 blueprint-deployed OpenStack: `kubectl apply` an `Instance` → an ACTIVE
 VM; `kubectl delete` it → the VM is gone.*
+
+> 📘 **Part 2 of a two-part series.** [**Part 1 — *OpenStack-as-a-Service with
+> Krateo: one Composition, one cloud***](https://medium.com/@diego.braga86/openstack-as-a-service-with-krateo-one-composition-one-cloud-1ff0bbb68809)
+> builds the cloud itself from Krateo blueprints. This part puts a Kubernetes
+> operator **on** that cloud — and drives real VMs on it.
 
 ![A single kubectl apply of an Instance CR flows through the rest-dynamic-controller and an nginx auth-bridge — which rewrites Authorization: Bearer into X-Auth-Token — to the OpenStack Nova Compute API, booting an ACTIVE VM.](images/architecture.png)
 
@@ -27,8 +32,8 @@ reconciles your custom resource by calling the underlying REST API.
 This article points that machinery at **OpenStack Nova** and tests it
 against an OpenStack we built ourselves from
 [Krateo blueprints](https://github.com/braghettos/krateo-openstack-blueprint)
-(see the companion article, *"OpenStack-as-a-Service with Krateo"*). The
-result is a self-contained loop: **a Kubernetes operator that creates VMs
+(the subject of [Part 1](https://medium.com/@diego.braga86/openstack-as-a-service-with-krateo-one-composition-one-cloud-1ff0bbb68809)).
+The result is a self-contained loop: **a Kubernetes operator that creates VMs
 on a Kubernetes-deployed cloud — neither side hand-written.**
 
 ---
@@ -114,7 +119,7 @@ spec:
   server:
     name: kog-demo-1
     flavorRef: "<m1.tiny id>"
-    imageRef:  "<cirros id>"
+    imageRef: "<cirros id>"
     networks:
       - uuid: "<demo-net id>"
     metadata: { managed-by: krateo-kog }
@@ -182,10 +187,12 @@ Two things make this loop interesting:
 
 - **No operator code.** The Nova "operator" is an OpenAPI subset, a
   `RestDefinition`, and 20 lines of nginx. The same pattern wraps *any*
-  REST API — Glance images, Neutron networks, Keystone projects — into
-  first-class CRDs. The OpenStack control plane becomes addressable from
-  GitOps, policy engines, and dependency graphs like anything else in
-  Kubernetes.
+  REST API: the operator already grew beyond `/servers` to `ComputeFlavor`,
+  `ComputeKeypair`, `ComputeServerGroup` and `ComputeAggregate` — and the
+  *identical* recipe produced sibling operators for Glance images, Neutron
+  networks and Keystone projects. The OpenStack control plane becomes
+  addressable from GitOps, policy engines, and dependency graphs like
+  anything else in Kubernetes.
 - **Both halves are declarative.** The cloud itself came up from Krateo
   blueprints; the VMs on it are Krateo CRs. It's Kubernetes all the way
   down — the cluster runs the cloud, and the cloud's resources are cluster
@@ -198,6 +205,10 @@ subset, not all of Nova. But the shape is right, and it works end to end
 against a cloud we built the same way.
 
 *Operator repo: [github.com/braghettos/openstack-nova-operator-kog](https://github.com/braghettos/openstack-nova-operator-kog)
-— see [`docs/e2e-krateo-openstack.md`](./e2e-krateo-openstack.md) for the
-full reproducible walkthrough. Blueprint repo:
-[github.com/braghettos/krateo-openstack-blueprint](https://github.com/braghettos/krateo-openstack-blueprint).*
+— start with [`docs/quickstart.md`](https://github.com/braghettos/openstack-nova-operator-kog/blob/main/docs/quickstart.md)
+(install → `kubectl apply` an `Instance` → see it in Horizon), or
+[`docs/e2e-krateo-openstack.md`](https://github.com/braghettos/openstack-nova-operator-kog/blob/main/docs/e2e-krateo-openstack.md)
+for the full reproducible walkthrough. Blueprint repo:
+[github.com/braghettos/krateo-openstack-blueprint](https://github.com/braghettos/krateo-openstack-blueprint).
+And [Part 1](https://medium.com/@diego.braga86/openstack-as-a-service-with-krateo-one-composition-one-cloud-1ff0bbb68809)
+builds the cloud this operator runs on.*
