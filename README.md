@@ -2,6 +2,9 @@
   <img src="docs/krateo-loves-nova.png" alt="Krateo loves OpenStack Nova" width="900"/>
 </p>
 
+> 📖 **[Quickstart](docs/quickstart.md)** — install the operator and see a resource appear in Horizon.
+
+
 # openstack-nova-operator-kog
 
 Krateo Operator Generator (KOG) packaging that turns OpenStack Nova
