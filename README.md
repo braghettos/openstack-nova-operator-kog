@@ -22,15 +22,21 @@ chart/
   Chart.yaml
   values.yaml
   assets/
-    server.yaml            # Hand-crafted Nova OAS subset (Servers)
+    server.yaml            # Nova OAS subset: Servers      -> Instance
+    flavor.yaml            #             ... Flavors        -> ComputeFlavor
+    keypair.yaml           #             ... Keypairs       -> ComputeKeypair
+    server-group.yaml      #             ... Server Groups  -> ComputeServerGroup
+    aggregate.yaml         #             ... Host Aggregates-> ComputeAggregate
+    quota.yaml             #             ... Quota Sets     -> ComputeQuota (off by default)
   templates/
-    configmap-server.yaml  # Bundles the OAS into a ConfigMap
-    rd-server.yaml         # RestDefinition pointing at the ConfigMap
+    configmap-*.yaml       # Bundles each OAS into a ConfigMap
+    rd-*.yaml              # One RestDefinition per resource (toggle via values)
     auth-bridge-*.yaml     # Stateless nginx that rewrites
                            # Authorization: Bearer -> X-Auth-Token
   samples/
     nova-auth.yaml         # Secret + InstanceConfiguration CR
     test-server.yaml       # Sample Instance CR
+    extra-resources.yaml   # Sample Flavor/Keypair/ServerGroup/Aggregate CRs
 scripts/
   get-token.sh             # Keystone v3 token fetcher; --secret mode
                            # emits a kubectl-apply-ready Secret

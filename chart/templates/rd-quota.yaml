@@ -1,0 +1,37 @@
+{{- if .Values.restdefinitions.quota.enabled }}
+apiVersion: ogen.krateo.io/v1alpha1
+kind: RestDefinition
+metadata:
+  name: {{ .Release.Name }}-quota
+  labels:
+    {{- include "openstack-nova-operator-kog.labels" . | nindent 4 }}
+spec:
+  oasPath: configmap://{{ .Release.Namespace }}/{{ .Release.Name }}-quota/quota.yaml
+  resourceGroup: {{ .Values.restdefinitions.quota.resourceGroup }}
+  resource:
+    # Quota set is a per-project singleton: PUT to set, DELETE to reset.
+    # See the OAS description for the known body-vs-path limitation that keeps
+    # this RestDefinition disabled by default.
+    kind: {{ .Values.restdefinitions.quota.resourceKind }}
+    identifiers:
+      - tenant_id
+    verbsDescription:
+      - action: create
+        method: PUT
+        path: /os-quota-sets/{tenant_id}
+        requestFieldMapping:
+          - inPath: tenant_id
+            inCustomResource: spec.tenant_id
+      - action: get
+        method: GET
+        path: /os-quota-sets/{tenant_id}
+        requestFieldMapping:
+          - inPath: tenant_id
+            inCustomResource: spec.tenant_id
+      - action: delete
+        method: DELETE
+        path: /os-quota-sets/{tenant_id}
+        requestFieldMapping:
+          - inPath: tenant_id
+            inCustomResource: spec.tenant_id
+{{- end }}

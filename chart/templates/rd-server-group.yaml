@@ -1,0 +1,37 @@
+{{- if .Values.restdefinitions.server_group.enabled }}
+apiVersion: ogen.krateo.io/v1alpha1
+kind: RestDefinition
+metadata:
+  name: {{ .Release.Name }}-server-group
+  labels:
+    {{- include "openstack-nova-operator-kog.labels" . | nindent 4 }}
+spec:
+  oasPath: configmap://{{ .Release.Namespace }}/{{ .Release.Name }}-server-group/servergroup.yaml
+  resourceGroup: {{ .Values.restdefinitions.server_group.resourceGroup }}
+  resource:
+    # Nova wraps the payload in a `server_group` envelope.
+    kind: {{ .Values.restdefinitions.server_group.resourceKind }}
+    identifiers:
+      - server_group.id
+      - server_group.name
+    additionalStatusFields:
+      - server_group.policies
+      - server_group.members
+      - server_group.project_id
+    verbsDescription:
+      - action: create
+        method: POST
+        path: /os-server-groups
+      - action: get
+        method: GET
+        path: /os-server-groups/{id}
+        requestFieldMapping:
+          - inPath: id
+            inCustomResource: status.server_group.id
+      - action: delete
+        method: DELETE
+        path: /os-server-groups/{id}
+        requestFieldMapping:
+          - inPath: id
+            inCustomResource: status.server_group.id
+{{- end }}

@@ -1,0 +1,118 @@
+openapi: 3.0.3
+info:
+  title: OpenStack Compute (Nova) - Host Aggregates (KOG-friendly subset)
+  description: |
+    Hand-crafted OpenAPI 3.0 subset of the Nova v2.1 Compute API covering the
+    host Aggregate lifecycle (create / get / delete). Aggregates group compute
+    hosts (optionally into an availability zone). Adding hosts/metadata uses
+    separate actions and is out of scope for this subset.
+
+    Nova wraps the payload in an `aggregate` envelope, so the CR uses
+    `spec.aggregate.*`. The CRD Kind is `ComputeAggregate` to avoid colliding
+    with the `aggregate` property crdgen derives from the envelope. Aggregate
+    operations require the admin role.
+  version: "2.1"
+servers:
+  - url: {{ include "openstack-nova-operator-kog.authBridgeUrl" . }}
+    description: In-cluster header-rewrite proxy in front of Nova
+components:
+  securitySchemes:
+    bearer:
+      type: http
+      scheme: bearer
+  schemas:
+    AggregateSpec:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+          description: Aggregate name.
+        availability_zone:
+          type: string
+          description: Availability zone this aggregate maps to (optional).
+    AggregateCreateRequest:
+      type: object
+      required:
+        - aggregate
+      properties:
+        aggregate:
+          $ref: '#/components/schemas/AggregateSpec'
+    AggregateSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        availability_zone:
+          type: string
+        hosts:
+          type: array
+          items:
+            type: string
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+        created_at:
+          type: string
+    AggregateEnvelope:
+      type: object
+      properties:
+        aggregate:
+          $ref: '#/components/schemas/AggregateSummary'
+security:
+  - bearer: []
+paths:
+  /os-aggregates:
+    post:
+      operationId: createAggregate
+      summary: Create a host aggregate
+      tags: [aggregates]
+      security:
+        - bearer: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AggregateCreateRequest'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AggregateEnvelope'
+  /os-aggregates/{id}:
+    parameters:
+      - name: id
+        in: path
+        required: true
+        schema:
+          type: string
+        description: Aggregate ID (integer).
+    get:
+      operationId: getAggregate
+      summary: Show aggregate details
+      tags: [aggregates]
+      security:
+        - bearer: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AggregateEnvelope'
+    delete:
+      operationId: deleteAggregate
+      summary: Delete a host aggregate
+      tags: [aggregates]
+      security:
+        - bearer: []
+      responses:
+        '200':
+          description: OK - aggregate deleted

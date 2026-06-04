@@ -1,0 +1,36 @@
+{{- if .Values.restdefinitions.aggregate.enabled }}
+apiVersion: ogen.krateo.io/v1alpha1
+kind: RestDefinition
+metadata:
+  name: {{ .Release.Name }}-aggregate
+  labels:
+    {{- include "openstack-nova-operator-kog.labels" . | nindent 4 }}
+spec:
+  oasPath: configmap://{{ .Release.Namespace }}/{{ .Release.Name }}-aggregate/aggregate.yaml
+  resourceGroup: {{ .Values.restdefinitions.aggregate.resourceGroup }}
+  resource:
+    # Nova wraps the payload in an `aggregate` envelope. Aggregate ops need admin.
+    kind: {{ .Values.restdefinitions.aggregate.resourceKind }}
+    identifiers:
+      - aggregate.id
+      - aggregate.name
+    additionalStatusFields:
+      - aggregate.availability_zone
+      - aggregate.hosts
+    verbsDescription:
+      - action: create
+        method: POST
+        path: /os-aggregates
+      - action: get
+        method: GET
+        path: /os-aggregates/{id}
+        requestFieldMapping:
+          - inPath: id
+            inCustomResource: status.aggregate.id
+      - action: delete
+        method: DELETE
+        path: /os-aggregates/{id}
+        requestFieldMapping:
+          - inPath: id
+            inCustomResource: status.aggregate.id
+{{- end }}

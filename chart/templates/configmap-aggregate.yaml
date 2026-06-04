@@ -1,0 +1,11 @@
+{{- if .Values.restdefinitions.aggregate.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-aggregate
+  labels:
+    {{- include "openstack-nova-operator-kog.labels" . | nindent 4 }}
+data:
+  aggregate.yaml: |
+{{ tpl (.Files.Get "assets/aggregate.yaml") . | indent 4 }}
+{{- end }}

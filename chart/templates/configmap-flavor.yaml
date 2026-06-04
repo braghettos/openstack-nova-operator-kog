@@ -1,0 +1,11 @@
+{{- if .Values.restdefinitions.flavor.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-flavor
+  labels:
+    {{- include "openstack-nova-operator-kog.labels" . | nindent 4 }}
+data:
+  flavor.yaml: |
+{{ tpl (.Files.Get "assets/flavor.yaml") . | indent 4 }}
+{{- end }}

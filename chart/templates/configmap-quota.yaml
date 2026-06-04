@@ -1,0 +1,11 @@
+{{- if .Values.restdefinitions.quota.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-quota
+  labels:
+    {{- include "openstack-nova-operator-kog.labels" . | nindent 4 }}
+data:
+  quota.yaml: |
+{{ tpl (.Files.Get "assets/quota.yaml") . | indent 4 }}
+{{- end }}

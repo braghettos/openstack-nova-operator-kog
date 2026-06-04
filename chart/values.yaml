@@ -13,6 +13,32 @@ restdefinitions:
     # Kind named "Server" with that property and emits an invalid
     # (empty-type) schema node, which the API server rejects.
     resourceKind: Instance
+  # Each Nova payload below is also envelope-wrapped (flavor / keypair /
+  # server_group / aggregate / quota_set), so each Kind is prefixed to avoid
+  # the same crdgen Kind-vs-property collision as `server`->`Instance`.
+  flavor:
+    enabled: true
+    resourceGroup: nova.openstack.krateo.io
+    resourceKind: ComputeFlavor
+  keypair:
+    enabled: true
+    resourceGroup: nova.openstack.krateo.io
+    resourceKind: ComputeKeypair
+  server_group:
+    enabled: true
+    resourceGroup: nova.openstack.krateo.io
+    resourceKind: ComputeServerGroup
+  aggregate:
+    enabled: true
+    resourceGroup: nova.openstack.krateo.io
+    resourceKind: ComputeAggregate
+  quota:
+    # Disabled by default: Nova's PUT /os-quota-sets/{tenant_id} rejects the
+    # tenant_id path field leaking into the body (additionalProperties:false).
+    # Needs a KOG path-only/excluded-from-body mapping. See assets/quota.yaml.
+    enabled: false
+    resourceGroup: nova.openstack.krateo.io
+    resourceKind: ComputeQuota
 
 # nova-auth-bridge is a tiny stateless reverse proxy that rewrites the
 # `Authorization: Bearer <token>` header (which the Krateo Rest Dynamic
