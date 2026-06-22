@@ -15,8 +15,15 @@ keywords:
   - nova
   - ovh
   - operator
+  - compute
 home: https://github.com/braghettos/openstack-nova-operator-kog
 sources:
   - https://github.com/braghettos/openstack-nova-operator-kog
 maintainers:
   - name: braghettos
+icon: https://raw.githubusercontent.com/krateoplatformops/krateo/main/docs/media/logo.svg
+annotations:
+  krateo.io/category: compute
+  krateo.io/display-name: OpenStack Nova KOG
+  krateo.io/maturity: beta
+  krateoSupportedVersion: ">= 2.5.1"
