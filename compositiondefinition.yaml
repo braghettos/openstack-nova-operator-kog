@@ -1,0 +1,12 @@
+apiVersion: core.krateo.io/v1alpha1
+kind: CompositionDefinition
+metadata:
+  name: openstack-nova-operator-kog
+  namespace: krateo-system
+spec:
+  chart:
+    # NOTE: this chart is not yet published. This OCI url resolves only once
+    # a release workflow pushes the chart to the charts/ namespace. See PR
+    # blockers: a publish job is still required.
+    url: oci://ghcr.io/braghettos/charts/openstack-nova-operator-kog
+    version: "0.1.0"

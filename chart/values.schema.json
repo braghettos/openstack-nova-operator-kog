@@ -1,0 +1,304 @@
+{
+  "$schema": "https://json-schema.org/draft-07/schema#",
+  "title": "openstack-nova-operator-kog values",
+  "description": "Configuration for the OpenStack Nova KOG (Krateo Operator Generator) chart. Sets the upstream Nova endpoint and toggles which Nova resources are exposed as native Kubernetes custom resources.",
+  "type": "object",
+  "required": [
+    "authBridge"
+  ],
+  "properties": {
+    "restdefinitions": {
+      "type": "object",
+      "description": "Toggle the per-resource RestDefinitions emitted by this chart. Each entry maps a Nova API resource to a generated CRD.",
+      "properties": {
+        "server": {
+          "type": "object",
+          "description": "Nova Servers (compute instances). Generated CRD Kind 'Instance'.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Emit the RestDefinition for Nova servers.",
+              "default": true
+            },
+            "resourceGroup": {
+              "type": "string",
+              "description": "Kubernetes API group for the generated CRD. GVK becomes <resourceGroup>/v1alpha1.",
+              "default": "nova.openstack.krateo.io"
+            },
+            "resourceKind": {
+              "type": "string",
+              "description": "Generated CRD Kind. Prefixed (Instance, not Server) to avoid a crdgen Kind-vs-property collision with the envelope-wrapped 'server' payload.",
+              "default": "Instance"
+            }
+          }
+        },
+        "flavor": {
+          "type": "object",
+          "description": "Nova Flavors. Generated CRD Kind 'ComputeFlavor'.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Emit the RestDefinition for Nova flavors.",
+              "default": true
+            },
+            "resourceGroup": {
+              "type": "string",
+              "description": "Kubernetes API group for the generated CRD. GVK becomes <resourceGroup>/v1alpha1.",
+              "default": "nova.openstack.krateo.io"
+            },
+            "resourceKind": {
+              "type": "string",
+              "description": "Generated CRD Kind. Prefixed to avoid the crdgen Kind-vs-property collision with the envelope-wrapped 'flavor' payload.",
+              "default": "ComputeFlavor"
+            }
+          }
+        },
+        "keypair": {
+          "type": "object",
+          "description": "Nova Keypairs. Generated CRD Kind 'ComputeKeypair'.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Emit the RestDefinition for Nova keypairs.",
+              "default": true
+            },
+            "resourceGroup": {
+              "type": "string",
+              "description": "Kubernetes API group for the generated CRD. GVK becomes <resourceGroup>/v1alpha1.",
+              "default": "nova.openstack.krateo.io"
+            },
+            "resourceKind": {
+              "type": "string",
+              "description": "Generated CRD Kind. Prefixed to avoid the crdgen Kind-vs-property collision with the envelope-wrapped 'keypair' payload.",
+              "default": "ComputeKeypair"
+            }
+          }
+        },
+        "server_group": {
+          "type": "object",
+          "description": "Nova Server Groups. Generated CRD Kind 'ComputeServerGroup'.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Emit the RestDefinition for Nova server groups.",
+              "default": true
+            },
+            "resourceGroup": {
+              "type": "string",
+              "description": "Kubernetes API group for the generated CRD. GVK becomes <resourceGroup>/v1alpha1.",
+              "default": "nova.openstack.krateo.io"
+            },
+            "resourceKind": {
+              "type": "string",
+              "description": "Generated CRD Kind. Prefixed to avoid the crdgen Kind-vs-property collision with the envelope-wrapped 'server_group' payload.",
+              "default": "ComputeServerGroup"
+            }
+          }
+        },
+        "aggregate": {
+          "type": "object",
+          "description": "Nova Host Aggregates. Generated CRD Kind 'ComputeAggregate'.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Emit the RestDefinition for Nova host aggregates.",
+              "default": true
+            },
+            "resourceGroup": {
+              "type": "string",
+              "description": "Kubernetes API group for the generated CRD. GVK becomes <resourceGroup>/v1alpha1.",
+              "default": "nova.openstack.krateo.io"
+            },
+            "resourceKind": {
+              "type": "string",
+              "description": "Generated CRD Kind. Prefixed to avoid the crdgen Kind-vs-property collision with the envelope-wrapped 'aggregate' payload.",
+              "default": "ComputeAggregate"
+            }
+          }
+        },
+        "quota": {
+          "type": "object",
+          "description": "Nova Quota Sets. Generated CRD Kind 'ComputeQuota'. Disabled by default: PUT /os-quota-sets/{tenant_id} needs a KOG path-only mapping.",
+          "properties": {
+            "enabled": {
+              "type": "boolean",
+              "description": "Emit the RestDefinition for Nova quota sets. Off by default until the path-only mapping lands.",
+              "default": false
+            },
+            "resourceGroup": {
+              "type": "string",
+              "description": "Kubernetes API group for the generated CRD. GVK becomes <resourceGroup>/v1alpha1.",
+              "default": "nova.openstack.krateo.io"
+            },
+            "resourceKind": {
+              "type": "string",
+              "description": "Generated CRD Kind. Prefixed to avoid the crdgen Kind-vs-property collision with the envelope-wrapped 'quota_set' payload.",
+              "default": "ComputeQuota"
+            }
+          }
+        }
+      }
+    },
+    "authBridge": {
+      "type": "object",
+      "description": "nova-auth-bridge: a tiny stateless nginx reverse proxy that rewrites the 'Authorization: Bearer <token>' header (emitted by the Krateo rest-dynamic-controller) into the 'X-Auth-Token: <token>' header that Nova expects. It does no Keystone token exchange.",
+      "required": [
+        "upstreamUrl"
+      ],
+      "properties": {
+        "enabled": {
+          "type": "boolean",
+          "description": "Deploy the auth bridge proxy.",
+          "default": true
+        },
+        "replicaCount": {
+          "type": "integer",
+          "description": "Number of auth-bridge replicas.",
+          "default": 1,
+          "minimum": 0
+        },
+        "upstreamUrl": {
+          "type": "string",
+          "description": "THE key user input. Upstream Nova endpoint taken from the Keystone service catalog, e.g. https://compute.gra11.cloud.ovh.net/v2.1/<projectId>. Empty by default; must be set at install time.",
+          "default": ""
+        },
+        "image": {
+          "type": "object",
+          "description": "Container image for the auth-bridge proxy.",
+          "properties": {
+            "repository": {
+              "type": "string",
+              "description": "Image repository.",
+              "default": "nginx"
+            },
+            "tag": {
+              "type": "string",
+              "description": "Image tag.",
+              "default": "1.27-alpine"
+            },
+            "pullPolicy": {
+              "type": "string",
+              "description": "Image pull policy.",
+              "default": "IfNotPresent",
+              "enum": [
+                "Always",
+                "IfNotPresent",
+                "Never"
+              ]
+            }
+          }
+        },
+        "service": {
+          "type": "object",
+          "description": "Service exposing the auth-bridge proxy in-cluster.",
+          "properties": {
+            "type": {
+              "type": "string",
+              "description": "Kubernetes Service type.",
+              "default": "ClusterIP",
+              "enum": [
+                "ClusterIP",
+                "NodePort",
+                "LoadBalancer"
+              ]
+            },
+            "port": {
+              "type": "integer",
+              "description": "Service port.",
+              "default": 80,
+              "minimum": 1,
+              "maximum": 65535
+            }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "description": "Compute resource requests and limits for the auth-bridge container.",
+          "properties": {
+            "requests": {
+              "type": "object",
+              "description": "Resource requests.",
+              "properties": {
+                "cpu": {
+                  "type": "string",
+                  "description": "CPU request.",
+                  "default": "10m"
+                },
+                "memory": {
+                  "type": "string",
+                  "description": "Memory request.",
+                  "default": "16Mi"
+                }
+              }
+            },
+            "limits": {
+              "type": "object",
+              "description": "Resource limits.",
+              "properties": {
+                "cpu": {
+                  "type": "string",
+                  "description": "CPU limit.",
+                  "default": "200m"
+                },
+                "memory": {
+                  "type": "string",
+                  "description": "Memory limit.",
+                  "default": "64Mi"
+                }
+              }
+            }
+          }
+        },
+        "podAnnotations": {
+          "type": "object",
+          "description": "Extra annotations to add to the auth-bridge pod.",
+          "default": {}
+        },
+        "nodeSelector": {
+          "type": "object",
+          "description": "Node selector for scheduling the auth-bridge pod.",
+          "default": {}
+        },
+        "tolerations": {
+          "type": "array",
+          "description": "Tolerations for scheduling the auth-bridge pod.",
+          "default": [],
+          "items": {
+            "type": "object"
+          }
+        },
+        "affinity": {
+          "type": "object",
+          "description": "Affinity rules for scheduling the auth-bridge pod.",
+          "default": {}
+        }
+      }
+    },
+    "serviceAccount": {
+      "type": "object",
+      "description": "ServiceAccount settings for chart workloads.",
+      "properties": {
+        "create": {
+          "type": "boolean",
+          "description": "Whether to create a ServiceAccount.",
+          "default": false
+        },
+        "name": {
+          "type": "string",
+          "description": "Name of the ServiceAccount to use. If empty and create is false, the default ServiceAccount is used.",
+          "default": ""
+        }
+      }
+    },
+    "nameOverride": {
+      "type": "string",
+      "description": "Override the chart name used in resource names.",
+      "default": ""
+    },
+    "fullnameOverride": {
+      "type": "string",
+      "description": "Override the fully qualified app name used in resource names.",
+      "default": ""
+    }
+  }
+}
