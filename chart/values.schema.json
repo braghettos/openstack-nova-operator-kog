@@ -3,7 +3,6 @@
   "title": "openstack-nova-operator-kog values",
   "description": "Configuration for the OpenStack Nova KOG (Krateo Operator Generator) chart. Sets the upstream Nova endpoint and toggles which Nova resources are exposed as native Kubernetes custom resources.",
   "type": "object",
-  "additionalProperties": false,
   "required": [
     "authBridge"
   ],
@@ -11,12 +10,10 @@
     "restdefinitions": {
       "type": "object",
       "description": "Toggle the per-resource RestDefinitions emitted by this chart. Each entry maps a Nova API resource to a generated CRD.",
-      "additionalProperties": false,
       "properties": {
         "server": {
           "type": "object",
           "description": "Nova Servers (compute instances). Generated CRD Kind 'Instance'.",
-          "additionalProperties": false,
           "properties": {
             "enabled": {
               "type": "boolean",
@@ -38,7 +35,6 @@
         "flavor": {
           "type": "object",
           "description": "Nova Flavors. Generated CRD Kind 'ComputeFlavor'.",
-          "additionalProperties": false,
           "properties": {
             "enabled": {
               "type": "boolean",
@@ -60,7 +56,6 @@
         "keypair": {
           "type": "object",
           "description": "Nova Keypairs. Generated CRD Kind 'ComputeKeypair'.",
-          "additionalProperties": false,
           "properties": {
             "enabled": {
               "type": "boolean",
@@ -82,7 +77,6 @@
         "server_group": {
           "type": "object",
           "description": "Nova Server Groups. Generated CRD Kind 'ComputeServerGroup'.",
-          "additionalProperties": false,
           "properties": {
             "enabled": {
               "type": "boolean",
@@ -104,7 +98,6 @@
         "aggregate": {
           "type": "object",
           "description": "Nova Host Aggregates. Generated CRD Kind 'ComputeAggregate'.",
-          "additionalProperties": false,
           "properties": {
             "enabled": {
               "type": "boolean",
@@ -126,7 +119,6 @@
         "quota": {
           "type": "object",
           "description": "Nova Quota Sets. Generated CRD Kind 'ComputeQuota'. Disabled by default: PUT /os-quota-sets/{tenant_id} needs a KOG path-only mapping.",
-          "additionalProperties": false,
           "properties": {
             "enabled": {
               "type": "boolean",
@@ -150,7 +142,6 @@
     "authBridge": {
       "type": "object",
       "description": "nova-auth-bridge: a tiny stateless nginx reverse proxy that rewrites the 'Authorization: Bearer <token>' header (emitted by the Krateo rest-dynamic-controller) into the 'X-Auth-Token: <token>' header that Nova expects. It does no Keystone token exchange.",
-      "additionalProperties": false,
       "required": [
         "upstreamUrl"
       ],
@@ -174,7 +165,6 @@
         "image": {
           "type": "object",
           "description": "Container image for the auth-bridge proxy.",
-          "additionalProperties": false,
           "properties": {
             "repository": {
               "type": "string",
@@ -201,7 +191,6 @@
         "service": {
           "type": "object",
           "description": "Service exposing the auth-bridge proxy in-cluster.",
-          "additionalProperties": false,
           "properties": {
             "type": {
               "type": "string",
@@ -225,12 +214,10 @@
         "resources": {
           "type": "object",
           "description": "Compute resource requests and limits for the auth-bridge container.",
-          "additionalProperties": false,
           "properties": {
             "requests": {
               "type": "object",
               "description": "Resource requests.",
-              "additionalProperties": false,
               "properties": {
                 "cpu": {
                   "type": "string",
@@ -247,7 +234,6 @@
             "limits": {
               "type": "object",
               "description": "Resource limits.",
-              "additionalProperties": false,
               "properties": {
                 "cpu": {
                   "type": "string",
@@ -291,7 +277,6 @@
     "serviceAccount": {
       "type": "object",
       "description": "ServiceAccount settings for chart workloads.",
-      "additionalProperties": false,
       "properties": {
         "create": {
           "type": "boolean",
