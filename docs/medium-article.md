@@ -312,7 +312,7 @@ status:  # populated by the controller
 ## Try it
 
 Everything is open source:
-**[github.com/braghettos/openstack-nova-operator-kog](https://github.com/braghettos/openstack-nova-operator-kog)**.
+**[github.com/krateo-blueprints/openstack-nova-operator-kog](https://github.com/krateo-blueprints/openstack-nova-operator-kog)**.
 
 A `kind` cluster, the Krateo `oasgen-provider`, this chart, and any
 OpenStack project (we used OVH Public Cloud) are all you need. The repo
