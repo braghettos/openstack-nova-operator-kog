@@ -1,3 +1,12 @@
+---
+type: Architecture
+title: openstack-nova-operator-kog — architecture
+description: The design of the blueprint — the flow from an Instance CR through oasgen-provider, rest-dynamic-controller and the nova-auth-bridge to the Nova API, and the rationale for the header-rewrite proxy.
+resource: oci://ghcr.io/krateo-blueprints/charts/openstack-nova-operator-kog
+tags: [architecture, kog, oasgen-provider, auth-bridge, design]
+timestamp: 2026-08-11T00:00:00Z
+---
+
 # Architecture
 
 ```mermaid
