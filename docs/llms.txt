@@ -1,0 +1,32 @@
+# openstack-nova-operator-kog — LLM doc index (pinned: 0.1.0)
+# One line per file; regenerate the pin on release. Read files at the tag that matches the
+# running build: the chart version is CompositionDefinition.spec.chart.version and equals
+# appVersion, and it is the published chart's tag — one tag covers chart, CRDs and these docs.
+docs/index.md: the map — what the blueprint is + links to the whole bundle and the repo layout
+docs/overview.md: the KOG packaging, the RestDefinition-per-resource model, the request flow, the auth-bridge gap
+docs/usage.md: install the chart or the Composition, fetch a Keystone token, create Nova CRs, refresh the token
+docs/configuration.md: the whole values surface — the RestDefinition toggles and the nova-auth-bridge proxy
+docs/api.md: the CompositionDefinition CRD, the generated OpenstackNovaOperatorKog CRD, the Nova CRD kinds
+docs/examples.md: index of the runnable examples and the worked sample CRs
+docs/release.md: how a tag publishes the chart to the org's OCI charts/ namespace on GHCR
+docs/log.md: curated history
+docs/architecture.md: diagram + design rationale, including why the header-rewrite proxy is needed today
+docs/quickstart.md: the shortest path from install to a VM in Horizon
+docs/e2e.md: the full OVH Public Cloud walkthrough on a kind cluster, with cleanup
+docs/e2e-krateo-openstack.md: the walkthrough against a self-hosted Krateo-blueprint OpenStack, with screenshots
+docs/medium-article.md: long-form write-up — kubectl apply to a running OVH VM, and the bugs hit on the way
+docs/medium-openstack-compute-operator.md: long-form write-up — the operator against a blueprint-deployed OpenStack
+examples/nova-composition/README.md: install the blueprint as a Krateo Composition (OpenstackNovaOperatorKog CR)
+examples/nova-composition/composition.yaml: the example Composition CR — auth bridge + toggled RestDefinitions
+# Source (read at the same tag; the docs above are derived from these):
+chart/values.yaml: every value with its rationale in comments
+chart/values.schema.json: the typed schema core-provider derives the generated Composition CRD from
+chart/templates/rd-server.yaml: a RestDefinition template (one per resource, toggled by values)
+chart/templates/auth-bridge-deployment.yaml: the nova-auth-bridge nginx Deployment
+chart/templates/auth-bridge-configmap.yaml: the nginx config that rewrites Bearer -> X-Auth-Token
+chart/assets/server.yaml: the Nova Servers OAS subset bundled into a ConfigMap
+chart/samples/nova-auth.yaml: the InstanceConfiguration referencing the nova-token bearer Secret
+chart/samples/test-server.yaml: a sample Instance CR (a Nova server)
+chart/samples/extra-resources.yaml: sample ComputeFlavor / ComputeKeypair / ComputeServerGroup / ComputeAggregate CRs
+scripts/get-token.sh: the Keystone v3 token fetcher; --secret emits a ready-to-apply Secret
+compositiondefinition.yaml: this component's own registration (spec.chart.version = the published chart)

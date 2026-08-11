@@ -1,3 +1,12 @@
+---
+type: Architecture
+title: openstack-nova-operator-kog — an OpenStack Compute Kubernetes operator with zero operator code
+description: Long-form write-up (part 2) — turning the Nova API into a native Kubernetes CRD with Krateo's Operator Generator (KOG) and driving real VMs on a self-hosted, blueprint-deployed OpenStack.
+resource: oci://ghcr.io/krateo-blueprints/charts/openstack-nova-operator-kog
+tags: [article, kog, openstack, nova, narrative]
+timestamp: 2026-08-11T00:00:00Z
+---
+
 ![Krateo loves OpenStack Nova](images/krateo-loves-nova.png)
 
 # An OpenStack Compute Kubernetes Operator with Krateo — and zero operator code

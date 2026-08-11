@@ -1,3 +1,12 @@
+---
+type: Runbook
+title: openstack-nova-operator-kog — quickstart
+description: The shortest path from installing the operator to seeing a Nova compute Instance appear in the Horizon dashboard — install oasgen-provider, deploy the chart, apply an Instance CR.
+resource: oci://ghcr.io/krateo-blueprints/charts/openstack-nova-operator-kog
+tags: [quickstart, runbook, install, instance, horizon]
+timestamp: 2026-08-11T00:00:00Z
+---
+
 # Quickstart — Nova (compute) operator
 
 Manage OpenStack **Nova** compute as Kubernetes CRs. End to end: install the

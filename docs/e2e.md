@@ -1,3 +1,12 @@
+---
+type: Runbook
+title: openstack-nova-operator-kog — end-to-end on OVH Public Cloud
+description: The full walkthrough against a real OVH Public Cloud project, from a clean machine — bootstrap a kind cluster, install the operator, fetch a Keystone token, boot a VM from an Instance CR, and clean up.
+resource: oci://ghcr.io/krateo-blueprints/charts/openstack-nova-operator-kog
+tags: [runbook, e2e, ovh, kind, walkthrough]
+timestamp: 2026-08-11T00:00:00Z
+---
+
 # End-to-end walkthrough on OVH Public Cloud
 
 This guide walks through deploying the chart against a real OVH Public

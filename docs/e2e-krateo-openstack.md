@@ -1,3 +1,12 @@
+---
+type: Runbook
+title: openstack-nova-operator-kog — end-to-end against a Krateo-blueprint OpenStack
+description: The walkthrough testing the operator against a self-hosted OpenStack stood up from the Krateo OpenStack blueprint (in-cluster Nova) rather than OVH — only the upstream endpoint and token source differ — with screenshots.
+resource: oci://ghcr.io/krateo-blueprints/charts/openstack-nova-operator-kog
+tags: [runbook, e2e, krateo-blueprint, openstack, walkthrough]
+timestamp: 2026-08-11T00:00:00Z
+---
+
 # End-to-end walkthrough against a Krateo-blueprint OpenStack
 
 This guide tests `openstack-nova-operator-kog` against an OpenStack that

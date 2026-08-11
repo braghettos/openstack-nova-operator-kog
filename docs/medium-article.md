@@ -1,3 +1,12 @@
+---
+type: Architecture
+title: openstack-nova-operator-kog — from kubectl apply to a running OpenStack VM
+description: Long-form write-up — how Krateo's Operator Generator (KOG) turns the Nova API into a native Kubernetes CRD, validated against OVH Public Cloud, and the five real bugs hit booting a VM.
+resource: oci://ghcr.io/krateo-blueprints/charts/openstack-nova-operator-kog
+tags: [article, kog, openstack, nova, ovh, narrative]
+timestamp: 2026-08-11T00:00:00Z
+---
+
 # From `kubectl apply` to a running OpenStack VM — with zero operator code
 
 *How Krateo's Operator Generator (KOG) turns the OpenStack Nova API into a
