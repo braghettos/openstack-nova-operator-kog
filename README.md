@@ -79,7 +79,7 @@ kubectl -n krateo-system get instances.nova.openstack.krateo.io -w
 See [docs/e2e.md](docs/e2e.md) for the full walkthrough including a
 `kind` bootstrap and cleanup,
 [docs/e2e-krateo-openstack.md](docs/e2e-krateo-openstack.md) for testing
-against a self-hosted [Krateo-blueprint](https://github.com/braghettos/krateo-openstack-blueprint)
+against a self-hosted [Krateo-blueprint](https://github.com/krateo-blueprints/krateo-openstack-blueprint)
 OpenStack (with screenshots), and [docs/architecture.md](docs/architecture.md)
 for the design rationale (specifically why a header-rewrite proxy is
 needed today).
