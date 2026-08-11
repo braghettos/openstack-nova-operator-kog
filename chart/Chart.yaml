@@ -5,7 +5,7 @@ description: |
   compute instances into native Kubernetes custom resources, validated
   against OVH Public Cloud as the managed OpenStack target.
 type: application
-version: 0.1.0
+version: CHART_VERSION
 appVersion: "0.1.0"
 keywords:
   - krateo
