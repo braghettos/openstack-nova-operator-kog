@@ -2,7 +2,7 @@
 
 This guide tests `openstack-nova-operator-kog` against an OpenStack that
 was stood up from the
-[Krateo OpenStack blueprint](https://github.com/braghettos/krateo-openstack-blueprint)
+[Krateo OpenStack blueprint](https://github.com/krateo-blueprints/krateo-openstack-blueprint)
 compositions (Nova/Neutron/Glance/etc.), rather than OVH Public Cloud.
 The operator itself is unchanged — only the upstream Nova endpoint and the
 token source differ.

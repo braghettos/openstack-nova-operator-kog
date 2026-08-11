@@ -8,5 +8,5 @@ spec:
     # NOTE: this chart is not yet published. This OCI url resolves only once
     # a release workflow pushes the chart to the charts/ namespace. See PR
     # blockers: a publish job is still required.
-    url: oci://ghcr.io/braghettos/charts/openstack-nova-operator-kog
+    url: oci://ghcr.io/krateo-blueprints/charts/openstack-nova-operator-kog
     version: "0.1.0"
